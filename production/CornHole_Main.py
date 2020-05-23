@@ -18,10 +18,10 @@ if __name__ == '__main__':
     GAME_CONTROLLER = GameController() #create game controller object
 
     try:
-	GAME_CONTROLLER.GameLoop()
+	GAME_CONTROLLER.gameLoop()
 	
     except KeyboardInterrupt:
         if args.clear:
-	    GAME_CONTROLLER.GameOver()
+	    GAME_CONTROLLER.gameOver()
     #except:
 	#GAME_CONTROLLER.GameOver()

@@ -9,8 +9,8 @@ class GameController:
     def __init__(self):  
 			
 	#Game configuration:
-	self.PLAYER_1 = PlayerController(color=Color(0, 255, 0), iplayer_num=1)
-	self.PLAYER_2 = PlayerController(color=Color(255, 0, 0), iplayer_num=2)
+	self.PLAYER_1 = PlayerController(color=Color(0, 255, 0), iplayer_num=1, bmyturn=True)
+	self.PLAYER_2 = PlayerController(color=Color(255, 0, 0), iplayer_num=2, bmyturn=False)
 	
 	#create light controller object
 	self.LIGHT_CONTROLLER = LightController()
@@ -18,34 +18,21 @@ class GameController:
 	#RFID configuration:
 	#TODO
 
-    
-    #Game Events
-    
-    #When someone gets the bag in the hole celebrate with lights
-    def InTheHole(self):
-	self.LIGHT_CONTROLLER.Celebrate()  
-	self.RoundContinue()
+
+    #when the round starts flash color of player whose turn it is and then set the lights for current score
+    def roundStart(self):
+	self.PLAYER_1.iround_score = 0
+	self.PLAYER_2.iround_score = 0
 	
-    def ShowScore(self):
-	self.LIGHT_CONTROLLER.ShowScore(self.PLAYER_1.iscore, self.PLAYER_1.iplayer_num, self.PLAYER_1.color)
-	self.LIGHT_CONTROLLER.ShowScore(self.PLAYER_2.iscore, self.PLAYER_2.iplayer_num, self.PLAYER_2.color)
-	
-	
-    #when the round starts set the lights for current score
-    def RoundStart(self):
-	self.ShowScore()
-	
-     #continue the round after an event
-    def RoundContinue(self):
-	self.LIGHT_CONTROLLER.Clear()
-	self.ShowScore()
+	if self.PLAYER_1.bmy_turn:
+	    self.LIGHT_CONTROLLER.roundStart(self.PLAYER_1)
+	else:
+	    self.LIGHT_CONTROLLER.roundStart(self.PLAYER_2)
+	    
+	self.showScore()
 	
     #when the round is over figure out the scoring and update
-    def RoundOver(self):
-	
-	#temporary for testing
-	self.PLAYER_1.iround_score = random.randint(0,12)
-	self.PLAYER_2.iround_score = random.randint(0,12)
+    def roundOver(self):
 	
 	#calculate round score of both players
 	iround_score = self.PLAYER_1.iround_score - self.PLAYER_2.iround_score
@@ -54,32 +41,80 @@ class GameController:
 	#if negative that means player 2 won the round
 	if iround_score > 0:
 		self.PLAYER_1.iscore += iround_score
+		self.PLAYER_1.bmy_turn = True
+		self.PLAYER_2.bmy_turn = False
 	else:
 		self.PLAYER_2.iscore += abs(iround_score)
+		self.PLAYER_1.bmy_turn = False
+		self.PLAYER_2.bmy_turn = True
 
-	print ("Round Results.............%d : Player 1 = %d : Player 2 = %d" % (iround_score,self.PLAYER_1.iround_score,self.PLAYER_2.iround_score))
+	print ("Round Results..........Player 1 = %d : Player 2 = %d" % (self.PLAYER_1.iround_score,self.PLAYER_2.iround_score))
 	
     #cleanup when the game is over
-    def GameOver(self):
-	self.LIGHT_CONTROLLER.Clear()
+    def gameOver(self):
+	self.LIGHT_CONTROLLER.clear()
+	
+	
+	
+    #Game Helpers
+    def inTheHole(self):
+	self.LIGHT_CONTROLLER.celebrate()  
+	self.roundContinue()
+	
+    #continue the round after an event
+    def roundContinue(self):
+	self.LIGHT_CONTROLLER.clear()
+	self.showScore()
+	
+    def showScore(self):
+	self.LIGHT_CONTROLLER.showScore(self.PLAYER_1)
+	self.LIGHT_CONTROLLER.showScore(self.PLAYER_2)
+    
 	
     #Main Game Loop
-    def GameLoop(self):
+    
+    def gameLoop(self):
 	
 	print("Starting Game")
+	
 	
 	while self.PLAYER_1.iscore < 21 and self.PLAYER_2.iscore < 21:
 	    
 	    print ("Starting Round.........Player 1 = %d : Player 2 = %d" % (self.PLAYER_1.iscore,self.PLAYER_2.iscore))
-	    self.RoundStart()
-	    time.sleep(5.0)
-	    print ("In the Hole............Player 1 = %d : Player 2 = %d" % (self.PLAYER_1.iscore,self.PLAYER_2.iscore))
-	    #self.InTheHole()
-	    self.RoundOver()
-	    print ("Round Over.............Player 1 = %d : Player 2 = %d" % (self.PLAYER_1.iscore,self.PLAYER_2.iscore))
+	    self.roundStart()
+	    
+	    #simulation code for testing------------------------------------------------
+	   
+	    for bag in range(8): 
+		
+		if self.PLAYER_1.bmy_turn:
+		    iresult_of_throw = input("Player 1 Throw Bag...")
+		    self.PLAYER_1.iround_score += iresult_of_throw
+		    self.PLAYER_1.bmy_turn = False
+		    self.PLAYER_2.bmy_turn = True
+		else:
+		    iresult_of_throw = input("Player 2 Throw Bag...")
+		    self.PLAYER_2.iround_score += iresult_of_throw
+		    self.PLAYER_1.bmy_turn = True
+		    self.PLAYER_2.bmy_turn = False
+		    
+		
+		if iresult_of_throw == 0:
+		    print ("Missed...")
+		elif iresult_of_throw == 1:
+		    print ("On The Board...")
+		elif iresult_of_throw == 3:
+		    print ("In The Hole...")
+		    self.inTheHole()
+		else:	
+		    print ("Unknown Event...")
+		    
+	    #----------------------------------------------------------------------------
+
+	    self.roundOver()
 	    
 	print ("Game Over")
-	self.GameOver()
+	self.gameOver()
 
 
 

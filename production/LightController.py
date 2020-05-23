@@ -9,7 +9,7 @@ class LightController:
         self.celebrate_color = Color(127, 127, 127)
         self.clear_color = Color(0,0,0)
         
-        self.default_celebrate_iterations = 40
+        self.default_celebrate_iterations = 30
         self.default_wait_ms = 50
                       
         # LED strip configuration:
@@ -26,7 +26,7 @@ class LightController:
 
 
     #turn off all lights
-    def Clear(self):
+    def clear(self):
         """Wipe color across display a pixel at a time."""
         for i in range(self.strip.numPixels()):
             self.strip.setPixelColor(i, self.clear_color)
@@ -34,7 +34,7 @@ class LightController:
             time.sleep(self.default_wait_ms/1000.0)
 
     #flashing celebration
-    def Celebrate(self):
+    def celebrate(self):
         """Movie theater light style chaser animation."""
         for j in range(self.default_celebrate_iterations):
             for q in range(3):
@@ -47,21 +47,34 @@ class LightController:
                 for i in range(0, self.strip.numPixels(), 3):
                     self.strip.setPixelColor(i+q, 0)
                     
-    def ShowScore(self, iplayer_score, iplayer_num, color):
+    def roundStart(self, Player):
+        """Movie theater light style chaser animation."""
+        for j in range(self.default_celebrate_iterations):
+            for q in range(3):
+                for i in range(0, self.strip.numPixels(), 3):
+                    self.strip.setPixelColor(i+q, Player.color)
+                    iBrightness = 255 / (q+1)
+                    self.strip.setBrightness(iBrightness)
+                self.strip.show()
+                time.sleep(self.default_wait_ms/1000.0)
+                for i in range(0, self.strip.numPixels(), 3):
+                    self.strip.setPixelColor(i+q, 0)
+                    
+    def showScore(self, Player):
  
-        if iplayer_num == 1:
+        if Player.iplayer_num == 1:
             istart = 0
-            iend = iplayer_score
+            iend = Player.iscore
             iincrement = 1
         else:
             istart = self.iLED_Count
-            iend = self.iLED_Count-1-iplayer_score 
+            iend = self.iLED_Count-1-Player.iscore 
             iincrement = -1
             
         #Player1 starts from beginning of strand and goes --->
         #Player2 starts from end of strand and goes <---
         for i in range(istart, iend, iincrement):
-            self.strip.setPixelColor(i, color)
+            self.strip.setPixelColor(i, Player.color)
             self.strip.show()
             time.sleep(self.default_wait_ms/1000.0)
         
